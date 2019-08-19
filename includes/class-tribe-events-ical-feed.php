@@ -122,6 +122,11 @@ class Tribe_Events_Ical_Feed {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-tribe-events-ical-feed-public.php';
 
+		/**
+		 * iCalendar library
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/icalendar/zapcallib.php';
+
 		$this->loader = new Tribe_Events_Ical_Feed_Loader();
 
 	}
@@ -154,8 +159,8 @@ class Tribe_Events_Ical_Feed {
 
 		$plugin_admin = new Tribe_Events_Ical_Feed_Admin( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		// $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
+		// $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
 	}
 
@@ -170,8 +175,12 @@ class Tribe_Events_Ical_Feed {
 
 		$plugin_public = new Tribe_Events_Ical_Feed_Public( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+		// $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
+		// $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+
+		$this->loader->add_action( 'init', $plugin_public, 'add_ical_feed' );
+		$this->loader->add_filter( 'feed_content_type', $plugin_public, 'ical_feed_content_type', 10, 2 );
+		$this->loader->add_filter( 'query_vars', $plugin_public, 'add_query_vars_filter' );
 
 	}
 

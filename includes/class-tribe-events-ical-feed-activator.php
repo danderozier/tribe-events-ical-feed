@@ -31,6 +31,9 @@ class Tribe_Events_Ical_Feed_Activator {
 	 */
 	public static function activate() {
 
+    global $wp_rewrite;
+    $wp_rewrite->flush_rules();
+
 	}
 
 }

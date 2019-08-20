@@ -32,7 +32,7 @@ class Tribe_Events_Ical_Feed_Activator {
 	public static function activate() {
 
 		if ( !class_exists('Tribe__Events__Main') ) {
-			die('The plugin "Tribe Events iCal Feed" requires plugin "The Event Calendar" to be activated.');
+			die('The plugin "Tribe Events iCal Feed" requires plugin "The Events Calendar" to be activated.');
 		}
 
     global $wp_rewrite;

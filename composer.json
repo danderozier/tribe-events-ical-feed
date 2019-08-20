@@ -1,0 +1,12 @@
+{
+    "name": "derozier/tribe-events-ical-feed",
+    "require": {
+        "eluceo/ical": "^0.15.1"
+    },
+    "authors": [
+        {
+            "name": "Daniel",
+            "email": "dan@derozier.me"
+        }
+    ]
+}

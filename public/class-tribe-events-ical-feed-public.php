@@ -137,7 +137,9 @@ class Tribe_Events_Ical_Feed_Public {
 
 	static function ical_feed() {
 
+		$feed_name = get_bloginfo('name');
 		$domain = parse_url($_SERVER['HTTP_HOST']);
+		$timezone = new \DateTimeZone( get_option('timezone_string') );
 		$category = get_query_var('category', false);
 
 		$query = [
@@ -147,6 +149,8 @@ class Tribe_Events_Ical_Feed_Public {
 		];
 
 		if ( $category ) {
+			$feed_name = $feed_name . ' - ' . ucwords(str_replace('-', ' ', $category));
+
 			$query['tax_query'] = array(
 				array(
 					'taxonomy' => 'tribe_events_cat',
@@ -159,41 +163,47 @@ class Tribe_Events_Ical_Feed_Public {
 		$events = tribe_get_events($query);
 
 		$tec = Tribe__Events__Main::instance();
-		$icalobj = new ZCiCal();
+
+		$vCalendar = new \Eluceo\iCal\Component\Calendar($domain);
+		$vCalendar
+			->setName($feed_name)
+			->setMethod('PUBLISH')
+			->setCalendarScale('GREGORIAN')
+			->setCalendarColor('#FF0000')
+			->setTimeZone(get_option('timezone_string'));
 
 		foreach($events as $event) {
-			$eventobj = new ZCiCalNode("VEVENT", $icalobj->curnode);
+			$event_cats = (array) wp_get_object_terms( $event->ID, Tribe__Events__Main::TAXONOMY, array( 'fields' => 'names' ) );
+			$event_location = $tec->fullAddressString( $event->ID );
 
-			$eventobj->addNode(new ZCiCalDataNode("SUMMARY:" . $event->post_title));
+			$vEvent = new \Eluceo\iCal\Component\Event();
 
-			$eventobj->addNode(new ZCiCalDataNode("DTSTART:" . ZCiCal::fromSqlDateTime($event->EventStartDate)));
-			$eventobj->addNode(new ZCiCalDataNode("DTEND:" . ZCiCal::fromSqlDateTime($event->EventEndDate)));
-			$eventobj->addNode(new ZCiCalDataNode("DTSTAMP:" . ZCiCal::fromSqlDateTime()));
+			$vEvent
+				->setSummary( $event->post_title )
+				->setDescription( $event->post_content )
+				->setDtStart( new \DateTime($event->EventStartDate, $timezone) )
+				->setDtEnd( new \DateTime($event->EventEndDate, $timezone) )
+				->setUrl( $event->guid )
+				->setCreated( new \DateTime($event->post_date, $timezone) )
+				->setModified( new \DateTime($event->post_modified, $timezone) );
 
-			$location = $tec->fullAddressString( $event->ID );
-			if ( ! empty( $location ) ) {
-        $str_location = str_replace( array( ',', "\n" ), array( '\,', '\n' ), html_entity_decode( $location, ENT_QUOTES ) );
-        $eventobj->addNode(new ZCiCalDataNode("LOCATION:" . $str_location));
-      }
+			if ( ! empty( $event_cats ) ) {
+				$vEvent->setCategories( $event_cats );
+			}
 
-      $eventobj->addNode(new ZCiCalDataNode("URL:" . $event->guid));
-    	$event_cats = (array) wp_get_object_terms( $event->ID, Tribe__Events__Main::TAXONOMY, array( 'fields' => 'names' ) );
-      if ( ! empty( $event_cats ) ) {
-          $eventobj->addNode(new ZCiCalDataNode('CATEGORIES:' . html_entity_decode( join( ',', $event_cats ), ENT_QUOTES )));
-      }
+			if ( ! empty( $event_location ) ) {
+				$vEvent->setLocation( $event_location );
+			}
 
-      $uid = $event->post_name . '-' . date('Y-m-d-H-i-s') . '@' . $domain['path'];
-      $eventobj->addNode(new ZCiCalDataNode("UID:" . $uid));
-      $eventobj->addNode(new ZCiCalDataNode("CREATED:" . ZCiCal::fromSqlDateTime($event->post_date)));
-      $eventobj->addNode(new ZCiCalDataNode("LAST-MODIFIED:" . ZCiCal::fromSqlDateTime($event->post_modified)));
+			$vEvent->setUseTimezone(true);
 
-      $eventobj->addNode(new ZCiCalDataNode("DESCRIPTION:" . ZCiCal::formatContent(
-      	$event->post_content
-      )));
+			$vCalendar->addComponent($vEvent);
 		}
 
-		echo $icalobj->export();
+		header('Content-Type: text/calendar; charset=utf-8');
+		header('Content-Disposition: attachment; filename="' . $feed_name . '.ics"');
+
+		echo $vCalendar->render();
 
 	}
-
 }

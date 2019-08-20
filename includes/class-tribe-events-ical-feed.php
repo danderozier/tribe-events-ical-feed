@@ -125,7 +125,7 @@ class Tribe_Events_Ical_Feed {
 		/**
 		 * iCalendar library
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/icalendar/zapcallib.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
 
 		$this->loader = new Tribe_Events_Ical_Feed_Loader();
 

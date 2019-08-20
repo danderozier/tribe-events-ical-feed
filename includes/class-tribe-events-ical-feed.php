@@ -181,6 +181,7 @@ class Tribe_Events_Ical_Feed {
 		$this->loader->add_action( 'init', $plugin_public, 'add_ical_feed' );
 		$this->loader->add_filter( 'feed_content_type', $plugin_public, 'ical_feed_content_type', 10, 2 );
 		$this->loader->add_filter( 'query_vars', $plugin_public, 'add_query_vars_filter' );
+		$this->loader->add_filter( 'tribe_get_events', $plugin_public, 'add_back_event_date_info', 5, 1);
 
 	}
 

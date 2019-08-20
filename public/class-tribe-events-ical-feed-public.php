@@ -135,6 +135,21 @@ class Tribe_Events_Ical_Feed_Public {
 	}
 
 
+	public function add_back_event_date_info( $events ){
+		$updated_events = array();
+
+		foreach( $events as $event ) {
+
+			$event->EventStartDate = tribe_get_start_date( $event, false, 'Y-m-j g:i a');
+			$event->EventEndDate = tribe_get_end_date( $event, false, 'Y-m-j g:i a');
+			$updated_events[]=$event;
+
+		}
+
+		return $updated_events;
+	}
+
+
 	static function ical_feed() {
 
 		$feed_name = get_bloginfo('name');
